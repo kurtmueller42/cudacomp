@@ -36,3 +36,4 @@ parser.output
 reftimer.pl
 timer.pl
 l4lib.c
+.vscode

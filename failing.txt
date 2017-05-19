@@ -1,1 +1,0 @@
-../tests1/strontium-09-typechecking-is-overrated.l4
