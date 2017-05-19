@@ -12,10 +12,6 @@ endif ()
 set(LLVM_LLC     "${LLVM_PATH}/llc")
 set(LLVM_CONFIG  "${LLVM_PATH}/llvm-config")
 
-if (("${PTX_BACKEND}" MATCHES "TRUE") AND (NOT (DEFINED CUDA_PATH)))
-message(FATAL_ERROR "CUDA_PATH variable is required when PTX_BACKEND is specified. See README.txt for help.")
-endif (("${PTX_BACKEND}" MATCHES "TRUE") AND (NOT (DEFINED CUDA_PATH)))
-
 ##############################################
 # END CONFIGURATION                          #
 ##############################################
@@ -44,10 +40,6 @@ FLEX_TARGET(lexer src/parser/lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp)
 ADD_FLEX_BISON_DEPENDENCY(lexer parser)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-if ("${PTX_BACKEND}" MATCHES "TRUE")
-include_directories("${CUDA_PATH}/include/")
-endif ("${PTX_BACKEND}" MATCHES "TRUE")
 
 # Configure main compiler executable
 
@@ -134,23 +126,6 @@ add_library(host_rt
     runtime/host_rt.c
     runtime/host_main.c
 )
-
-if ("${PTX_BACKEND}" MATCHES "TRUE")
-add_library(device_rt
-    runtime/device_rt.c
-)
-
-add_custom_command(
-    OUTPUT device_rt_kernel.cubin
-    COMMAND nvcc -arch=sm_30 -cubin -dc -o device_rt_kernel.cubin ${CMAKE_CURRENT_SOURCE_DIR}/runtime/device_rt_kernel.cu
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS runtime/device_rt_kernel.cu
-    COMMENT "Building device runtime kernels" VERBATIM)
-
-add_custom_target(device_rt_kernel DEPENDS device_rt_kernel.cubin)
-add_dependencies(device_rt device_rt_kernel)
-endif ("${PTX_BACKEND}" MATCHES "TRUE")
-
 # Configure documentation
 
 find_package(Doxygen)
@@ -175,10 +150,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/driver/driver.py
 
 install(TARGETS cc DESTINATION bin/)
 install(TARGETS host_rt DESTINATION lib/)
-
-if ("${PTX_BACKEND}" MATCHES "TRUE")
-install(TARGETS device_rt DESTINATION lib/)
-endif ("${PTX_BACKEND}" MATCHES "TRUE")
 
 # Autolab support
 
